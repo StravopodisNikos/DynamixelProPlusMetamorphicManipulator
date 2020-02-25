@@ -9,13 +9,16 @@
 #include <fstream>
 #include <vector>
 #include "DynamixelProPlusMetamorphicManipulator.h"
+#include "definitions.h"                            // Includes definitions of control table variables addresses/data lengths/ communication/ protocols
+#include "motorIDs.h"                               // Includes motor IDs as set using Dynamixel Wizard
 
 using namespace std;
 
-// Creating a ney type for storaging 2D arrays of parameter values for control tale items
-typedef uint8_t paramAccelLimit[4];                                           
-typedef uint8_t paramVelLimit[4];
-typedef uint8_t paramGoalPos[4];
+// Creating a ney type for storaging 2D arrays of parameter values for control table items
+typedef uint8_t paramAccelLimit[LEN_PRO_ACCEL_LIMIT];                                           
+typedef uint8_t paramVelLimit[LEN_PRO_VEL_LIMIT];
+typedef uint8_t paramGoalPos[LEN_PRO_GOAL_POSITION];
+typedef uint8_t type_param_indirect_data_for_GP_A_V_LED[LEN_PRO_INDIRECTDATA_FOR_WRITE];
 
 // Constructor
 DynamixelProPlusMetamorphicManipulator::DynamixelProPlusMetamorphicManipulator(){
@@ -52,25 +55,25 @@ bool DynamixelProPlusMetamorphicManipulator::pingDynamixels(uint8_t *DxlIDs, int
 
 // =========================================================================================================== //
 
-bool DynamixelProPlusMetamorphicManipulator::syncSetTorque(uint8_t *DxlIDs, int DxlIds_size, uint8_t data, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_STATUS, dynamixel::PacketHandler *packetHandler)
+bool DynamixelProPlusMetamorphicManipulator::syncSetTorque(uint8_t *DxlIDs, int DxlIds_size, uint8_t data, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler)
 {     
 /*
  *  Sets the same toque status to all connected Dynamixels
  * torque status value is given through data variable and range value is: 0~1 
  */
     for(int id_count = 0; id_count < DxlIds_size; id_count++){
-        dxl_addparam_result = groupSyncWrite_TORQUE_STATUS.addParam(DxlIDs[id_count], &data);
+        dxl_addparam_result = groupSyncWrite_TORQUE_ENABLE.addParam(DxlIDs[id_count], &data);
         if (dxl_addparam_result != true)
         {
-          Serial.print("[ID:"); Serial.print(DxlIDs[id_count]); Serial.println("groupSyncWrite_TORQUE_STATUS.addParam FAILED");
+          Serial.print("[ID:"); Serial.print(DxlIDs[id_count]); Serial.println("groupSyncWrite_TORQUE_ENABLE.addParam FAILED");
           return false;
         }
     }
 
-    dxl_comm_result = groupSyncWrite_TORQUE_STATUS.txPacket();
+    dxl_comm_result = groupSyncWrite_TORQUE_ENABLE.txPacket();
     if (dxl_comm_result != COMM_SUCCESS)
     {
-      Serial.print(packetHandler->getTxRxResult(dxl_comm_result)); Serial.println("groupSyncWrite_TORQUE_STATUS.txPacket() FAILED");
+      Serial.print(packetHandler->getTxRxResult(dxl_comm_result)); Serial.println("groupSyncWrite_TORQUE_ENABLE.txPacket() FAILED");
       return false;
     }
     else
@@ -78,7 +81,7 @@ bool DynamixelProPlusMetamorphicManipulator::syncSetTorque(uint8_t *DxlIDs, int 
       Serial.print("Torque STATUS CHANGED"); Serial.print(" New status:"); Serial.println(data);
     }
     
-    groupSyncWrite_TORQUE_STATUS.clearParam();
+    groupSyncWrite_TORQUE_ENABLE.clearParam();
     return true;
 } // END FUNCTION 
 
@@ -255,3 +258,237 @@ else
 } // END FUNCTION
 
 // =========================================================================================================== //
+
+bool DynamixelProPlusMetamorphicManipulator::syncSet_GP_A_V_LED( uint8_t *DxlIDs, int DxlIds_size, typeDxlTrapzProfParams DxlTrapzProfParams[], int DxlTrapzProfParams_size, dynamixel::GroupSyncWrite groupSyncWrite_GP_A_V_LED, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler){
+
+/*
+ *  Uses Indirect Addressing to write Goal Position, Acceleration, Velocity and LED values
+ */
+
+// I. Disable Dynamixel Torque because Indirect address would not be accessible when the torque is already enabled
+        uint8_t param_torque_enable = 0;
+        Serial.println("syncSet_GP_A_V_LED: Setting Dynamixels TORQUE -> DISABLED to write Indirect data to EEPROM Memory");
+        return_function_state = syncSetTorque(DxlIDs, sizeof(DxlIDs), param_torque_enable, groupSyncWrite_TORQUE_ENABLE, packetHandler);
+        if (return_function_state == true)
+        {
+          Serial.println("SUCCESS");
+        }
+        else
+        {
+          Serial.println("FAILED");
+        }
+// II. Allocatec Values to Write into byte arrays
+
+        for(int id_count = 0; id_count < DxlIds_size; id_count++){
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 0, ADDR_PRO_GOAL_POSITION + 0, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 2, ADDR_PRO_GOAL_POSITION + 1, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 4, ADDR_PRO_GOAL_POSITION + 2, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 6, ADDR_PRO_GOAL_POSITION + 3, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+
+                // III.2.2. Allocate Profile Acceleration value into byte array
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 8, ADDR_PRO_PROF_ACCEL + 0, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 10, ADDR_PRO_PROF_ACCEL + 1, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 12, ADDR_PRO_PROF_ACCEL + 2, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 14, ADDR_PRO_PROF_ACCEL + 3, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+
+                // III.2.3. Allocate Profile Velocity value into byte array
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 16, ADDR_PRO_PROF_VEL + 0, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 18, ADDR_PRO_PROF_VEL + 1, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 20, ADDR_PRO_PROF_VEL + 2, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 22, ADDR_PRO_PROF_VEL + 3, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+
+                // III.2.3. Allocate LEDs value into byte array
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 24, ADDR_PRO_LED_BLUE, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 26, ADDR_PRO_LED_GREEN, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+                dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_WRITE + 28, ADDR_PRO_LED_RED, &dxl_error);
+                if (dxl_comm_result != COMM_SUCCESS)
+                {
+                    packetHandler->getTxRxResult(dxl_comm_result);
+                }
+                else if (dxl_error != 0)
+                {
+                    packetHandler->getRxPacketError(dxl_error);
+                }
+        } // FINISHED WRITING IN EEPROM MEMORY
+
+// III. Enable Dynamixel Torque since writing to EEPROM Memory finished
+        param_torque_enable = 1;
+        Serial.println("Setting Dynamixels TORQUE: ENABLED since finished accessing EEPROM.");
+        return_function_state = syncSetTorque(DxlIDs, DxlIds_size, param_torque_enable, groupSyncWrite_TORQUE_ENABLE, packetHandler);
+        if (return_function_state == true)
+        {
+          Serial.println("SUCCESS");
+        }
+        else
+        {
+          Serial.println("FAILED");
+        }
+
+type_param_indirect_data_for_GP_A_V_LED param_indirect_data_for_GP_A_V_LED[DxlTrapzProfParams_size];
+
+        for(int id_count = 0; id_count < DxlIds_size; id_count++){
+                // IV.  Allocate parameters for write to each Dynamixel
+                param_indirect_data_for_GP_A_V_LED[id_count][0] = DXL_LOBYTE(DXL_LOWORD(DxlTrapzProfParams[id_count][1]));      // Goal Position
+                param_indirect_data_for_GP_A_V_LED[id_count][1] = DXL_HIBYTE(DXL_LOWORD(DxlTrapzProfParams[id_count][1]));
+                param_indirect_data_for_GP_A_V_LED[id_count][2] = DXL_LOBYTE(DXL_HIWORD(DxlTrapzProfParams[id_count][1]));
+                param_indirect_data_for_GP_A_V_LED[id_count][3] = DXL_HIBYTE(DXL_HIWORD(DxlTrapzProfParams[id_count][1]));
+                
+                param_indirect_data_for_GP_A_V_LED[id_count][4] = DXL_LOBYTE(DXL_LOWORD(DxlTrapzProfParams[id_count][2]));      // Goal Velocity
+                param_indirect_data_for_GP_A_V_LED[id_count][5] = DXL_HIBYTE(DXL_LOWORD(DxlTrapzProfParams[id_count][2]));
+                param_indirect_data_for_GP_A_V_LED[id_count][6] = DXL_LOBYTE(DXL_HIWORD(DxlTrapzProfParams[id_count][2]));
+                param_indirect_data_for_GP_A_V_LED[id_count][7] = DXL_HIBYTE(DXL_HIWORD(DxlTrapzProfParams[id_count][2]));
+                
+                param_indirect_data_for_GP_A_V_LED[id_count][8] = DXL_LOBYTE(DXL_LOWORD(DxlTrapzProfParams[id_count][3]));      // Goal Acceleration
+                param_indirect_data_for_GP_A_V_LED[id_count][9] = DXL_HIBYTE(DXL_LOWORD(DxlTrapzProfParams[id_count][3]));
+                param_indirect_data_for_GP_A_V_LED[id_count][10] = DXL_LOBYTE(DXL_HIWORD(DxlTrapzProfParams[id_count][3]));
+                param_indirect_data_for_GP_A_V_LED[id_count][11] = DXL_HIBYTE(DXL_HIWORD(DxlTrapzProfParams[id_count][3]));
+                
+                param_indirect_data_for_GP_A_V_LED[id_count][12] = dxl_ledBLUE_value[led_change];                                // BLUE
+                param_indirect_data_for_GP_A_V_LED[id_count][13] = dxl_ledGREEN_value[led_change];                               // GREEN
+                param_indirect_data_for_GP_A_V_LED[id_count][14] = dxl_ledRED_value[led_change];                                 // RED
+
+                // V.   Add WRITE values to the Syncwrite parameter storage for each Dynamixel
+                dxl_addparam_result = groupSyncWrite_GP_A_V_LED.addParam(DxlIDs[id_count], param_indirect_data_for_GP_A_V_LED[id_count]);
+                if (dxl_addparam_result != true)
+                {
+                    Serial.print("[ID:"); Serial.print(DxlIDs[id_count]); Serial.println("] groupSyncWrite_GP_A_V_LED.addParam addparam FAILED");
+                    return false;
+                }
+                else
+                { 
+                    Serial.print("[ID:"); Serial.print(DxlIDs[id_count]); Serial.println("] groupSyncWrite_GP_A_V_LED.addParam addparam SUCCESS");
+                }
+        }
+
+        // VI. Syncwrite Packet is sent to Dynamixels
+        dxl_comm_result = groupSyncWrite_GP_A_V_LED.txPacket();
+        if (dxl_comm_result != COMM_SUCCESS){
+            
+            Serial.print(packetHandler->getTxRxResult(dxl_comm_result));
+            Serial.println("groupSyncWrite_GP_A_V_LED.txPacket: FAILED");
+            groupSyncWrite_GP_A_V_LED.clearParam();                                 // Clears syncwrite parameter storage
+            return false;
+        }else{
+            groupSyncWrite_GP_A_V_LED.clearParam();
+            Serial.println("groupSyncWrite_GP_A_V_LED.txPacket: SUCCESS");
+            return true;
+        }
+}
