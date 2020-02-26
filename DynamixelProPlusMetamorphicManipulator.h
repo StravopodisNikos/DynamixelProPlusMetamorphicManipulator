@@ -63,6 +63,8 @@ class DynamixelProPlusMetamorphicManipulator
 
     bool syncSet_GP_A_V_LED( uint8_t *DxlIDs, int DxlIds_size, typeDxlTrapzProfParams DxlTrapzProfParams[], int DxlTrapzProfParams_size, dynamixel::GroupSyncWrite groupSyncWrite_GP_A_V_LED, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
 
+    bool syncGet_PP_MV( uint8_t *DxlIDs, int DxlIds_size, uint8_t *dxl_moving, int dxl_moving_size, uint32_t *dxl_present_position, int dxl_present_position_size , dynamixel::GroupSyncRead groupSyncRead_PP_MV, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
+
     private:
 
 };
