@@ -654,5 +654,345 @@ else
     return false;
 }
 
+// =========================================================================================================== //
 
 } // END FUNCTION
+
+bool DynamixelProPlusMetamorphicManipulator::syncGet_PP_PV_PA_VL_AL( uint8_t *DxlIDs, int DxlIds_size, uint32_t *dxl_present_position, int dxl_present_position_size , dxlProfVel dxl_prof_vel, int dxl_prof_vel_size, dxlProfAccel dxl_prof_accel, int dxl_prof_accel_size , dxlVelLimit dxl_vel_limit, int dxl_vel_limit_size,  dxlAccelLimit dxl_accel_limit, int dxl_accel_limit_size, dynamixel::GroupSyncRead groupSyncRead_PP_PV_PA_VL_AL, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler) {
+/*
+    *  Reads 1. Present Absolute Position
+    *        2. Profile Acceleration
+    *        3. Profile Velocity
+    *        4. Velocity Limit
+    *        5. Acceleration Limit
+    *  Always executed at setup
+    *  "Twin" function of CustomStepperMetamorphicManipulator/readEEPROMsettings
+    */
+if ( (DxlIds_size == dxl_present_position_size) && (DxlIds_size == dxl_prof_vel_size) && (DxlIds_size == dxl_prof_accel_size) && (DxlIds_size == dxl_vel_limit_size) && (DxlIds_size == dxl_accel_limit_size) )
+{
+    // 1. Disable Dynamixel Torque because Indirect address would not be accessible when the torque is already enabled
+    uint8_t param_torque_enable = 0;
+    Serial.println("[syncGet_PP_PV_PA_VL_AL ]: Setting Dynamixels TORQUE -> DISABLED to write Indirect Data to EEPROM Memory");
+    return_function_state = DynamixelProPlusMetamorphicManipulator::syncSetTorque(DxlIDs, sizeof(DxlIDs), param_torque_enable, groupSyncWrite_TORQUE_ENABLE, packetHandler);
+    if (return_function_state == true)
+    {
+        Serial.println("SUCCESS");
+    }
+    else
+    {
+        Serial.println("FAILED");
+        return false;
+    }
+    
+    // 2. Write to EEPROM the INDIRECTDATA parameter storage
+    for(int id_count = 0; id_count < DxlIds_size; id_count++){
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 0, ADDR_PRO_PRESENT_POSITION + 0, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 2, ADDR_PRO_PRESENT_POSITION + 1, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 4, ADDR_PRO_PRESENT_POSITION + 2, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 6, ADDR_PRO_PRESENT_POSITION + 3, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 8, ADDR_PRO_PROF_VEL + 0, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 10, ADDR_PRO_PROF_VEL + 1, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 12, ADDR_PRO_PROF_VEL + 2, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 14, ADDR_PRO_PROF_VEL + 3, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 16, ADDR_PRO_PROF_ACCEL + 0, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 18, ADDR_PRO_PROF_ACCEL + 1, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 20, ADDR_PRO_PROF_ACCEL + 2, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 22, ADDR_PRO_PROF_ACCEL + 3, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 24, ADDR_PRO_VEL_LIMIT + 0, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 26, ADDR_PRO_VEL_LIMIT + 1, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 28, ADDR_PRO_VEL_LIMIT + 2, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 30, ADDR_PRO_VEL_LIMIT + 3, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+        
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 32, ADDR_PRO_ACCEL_LIMIT + 0, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 34, ADDR_PRO_ACCEL_LIMIT + 1, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }   
+
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 36, ADDR_PRO_ACCEL_LIMIT + 2, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        }
+
+        dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlIDs[id_count], ADDR_PRO_INDIRECTADDRESS_FOR_READ_PP_PV_PA_VL_AL + 38, ADDR_PRO_ACCEL_LIMIT + 3, &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        }
+        else if (dxl_error != 0)
+        {
+        packetHandler->getRxPacketError(dxl_error);
+        } 
+    }
+
+    // 3. Enable Dynamixel Torque since writing to EEPROM Memory finished
+    param_torque_enable = 1;
+    Serial.println("Setting Dynamixels TORQUE: ENABLED since finished accessing EEPROM.");
+    return_function_state = syncSetTorque(DxlIDs, DxlIds_size, param_torque_enable, groupSyncWrite_TORQUE_ENABLE, packetHandler);
+    if (return_function_state == true)
+    {
+        Serial.println("SUCCESS");
+    }
+    else
+    {
+        Serial.println("FAILED");
+    } 
+
+    // 4.   Add parameter storage for the Present Positing & Moving items
+    for(int id_count = 0; id_count < DxlIds_size; id_count++){
+        dxl_addparam_result = groupSyncRead_PP_PV_PA_VL_AL.addParam(DxlIDs[id_count]);
+        if (dxl_addparam_result != true)
+        {
+            Serial.print("[ ID: "); Serial.print(DxlIDs[id_count]); Serial.println(" ] groupSyncRead_PP_PV_PA_VL_AL.addParam FAILED");
+            return false;
+        }
+        else
+        {
+            Serial.print("[ ID: "); Serial.print(DxlIDs[id_count]); Serial.println(" ] groupSyncRead_PP_PV_PA_VL_AL.addParam SUCCESS");
+        }
+    }
+
+    // 5.  Start communication 
+    dxl_comm_result = groupSyncRead_PP_PV_PA_VL_AL.txRxPacket();
+    Serial.print("groupSyncRead_PP_MV.txRxPacket(): dxl_comm_result = "); Serial.println(dxl_comm_result);
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        packetHandler->getTxRxResult(dxl_comm_result);
+        for(int id_count = 0; id_count < DxlIds_size; id_count++){
+            Serial.print("[ ID: "); Serial.print(DxlIDs[id_count]); Serial.println(" ] groupSyncRead_PP_PV_PA_VL_AL.txRxPacket() FAILED");
+            return false;
+        }
+    }
+    else
+    { 
+        for(int id_count = 0; id_count < DxlIds_size; id_count++){
+            Serial.print("[ID: "); Serial.print(DxlIDs[id_count]); Serial.println(" ] groupSyncRead_PP_PV_PA_VL_AL.txRxPacket() SUCCESS");
+        }
+
+    }
+
+    // 6. Check if data is available
+    for(int id_count = 0; id_count < DxlIds_size; id_count++)
+    {
+        dxl_getdata_result = groupSyncRead_PP_PV_PA_VL_AL.isAvailable(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL, LEN_PRO_PRESENT_POSITION);
+        if (dxl_getdata_result != true)
+        {
+            Serial.print("[ID: "); Serial.print(DxlIDs[id_count]); Serial.println("] groupSyncRead_PP_PV_PA_VL_AL.isAvailable PRESENT_POSITION FAILED");
+            return false;
+        }
+        dxl_getdata_result = groupSyncRead_PP_PV_PA_VL_AL.isAvailable(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL + LEN_PRO_PRESENT_POSITION, LEN_PRO_PROF_VEL);
+        if (dxl_getdata_result != true)
+        {
+            Serial.print("[ID: "); Serial.print(DxlIDs[id_count]); Serial.println("] groupSyncRead_PP_PV_PA_VL_AL.isAvailable PROFILE_VELOCITY FAILED");
+            return false;
+        }
+        dxl_getdata_result = groupSyncRead_PP_PV_PA_VL_AL.isAvailable(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL + LEN_PRO_PRESENT_POSITION + LEN_PRO_PROF_VEL, LEN_PRO_PROF_ACCEL);
+        if (dxl_getdata_result != true)
+        {
+            Serial.print("[ID: "); Serial.print(DxlIDs[id_count]); Serial.println("] groupSyncRead_PP_PV_PA_VL_AL.isAvailable PROFILE_ACCELERATION FAILED");
+            return false;
+        }
+        dxl_getdata_result = groupSyncRead_PP_PV_PA_VL_AL.isAvailable(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL + LEN_PRO_PRESENT_POSITION + LEN_PRO_PROF_VEL + LEN_PRO_PROF_ACCEL, LEN_PRO_VEL_LIMIT);
+        if (dxl_getdata_result != true)
+        {
+            Serial.print("[ID: "); Serial.print(DxlIDs[id_count]); Serial.println("] groupSyncRead_PP_PV_PA_VL_AL.isAvailable VELOCITY_LIMIT FAILED");
+            return false;
+        }
+        dxl_getdata_result = groupSyncRead_PP_PV_PA_VL_AL.isAvailable(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL + LEN_PRO_PRESENT_POSITION + LEN_PRO_PROF_VEL + LEN_PRO_PROF_ACCEL + LEN_PRO_VEL_LIMIT, LEN_PRO_ACCEL_LIMIT);
+        if (dxl_getdata_result != true)
+        {
+            Serial.print("[ID: "); Serial.print(DxlIDs[id_count]); Serial.println("] groupSyncRead_PP_PV_PA_VL_AL.isAvailable ACCELERATION_LIMIT FAILED");
+            return false;
+        }
+    }
+
+    // 7.  Get data
+    for(int id_count = 0; id_count < DxlIds_size; id_count++)
+    {
+        dxl_present_position[id_count] = groupSyncRead_PP_PV_PA_VL_AL.getData(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL, LEN_PRO_PRESENT_POSITION);
+        
+        dxl_prof_vel[id_count] = groupSyncRead_PP_PV_PA_VL_AL.getData(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL + LEN_PRO_PRESENT_POSITION, LEN_PRO_PROF_VEL);
+    
+        dxl_prof_accel[id_count] = groupSyncRead_PP_PV_PA_VL_AL.getData(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL + LEN_PRO_PRESENT_POSITION + LEN_PRO_PROF_VEL, LEN_PRO_PROF_ACCEL);
+
+        dxl_vel_limit[id_count] = groupSyncRead_PP_PV_PA_VL_AL.getData(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL + LEN_PRO_PRESENT_POSITION + LEN_PRO_PROF_VEL + LEN_PRO_PROF_ACCEL, LEN_PRO_VEL_LIMIT);
+
+        dxl_accel_limit[id_count] = groupSyncRead_PP_PV_PA_VL_AL.getData(DxlIDs[id_count], ADDR_PRO_INDIRECTDATA_FOR_READ_PP_PV_PA_VL_AL + LEN_PRO_PRESENT_POSITION + LEN_PRO_PROF_VEL + LEN_PRO_PROF_ACCEL + LEN_PRO_VEL_LIMIT, LEN_PRO_ACCEL_LIMIT);
+
+    }
+
+    // 8.   Print success
+    Serial.println("groupSyncRead_PP_PV_PA_VL_AL: SUCCESS");
+    return true;
+
+}
+else
+{
+    // Only prints failed
+    Serial.println("[ syncGet_PP_PV_PA_VL_AL ]: Arrays of different size were given FAILED");
+    return false;
+}
+
+}

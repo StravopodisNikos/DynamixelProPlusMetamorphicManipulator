@@ -32,6 +32,8 @@ extern uint8_t dxl_ledRED_value[];
 
 typedef int32_t dxlVelLimit[sizeof(dxl_id)];
 typedef int32_t dxlAccelLimit[sizeof(dxl_id)];
+typedef int32_t dxlProfVel[sizeof(dxl_id)];
+typedef int32_t dxlProfAccel[sizeof(dxl_id)];
 typedef int32_t dxlGoalPos[sizeof(dxl_id)];
 typedef int32_t typeDxlTrapzProfParams[sizeof(dxl_id)];
 typedef uint8_t typeLED[sizeof(dxl_id)];
@@ -65,6 +67,8 @@ class DynamixelProPlusMetamorphicManipulator
 
     bool syncGet_PP_MV( uint8_t *DxlIDs, int DxlIds_size, uint8_t *dxl_moving, int dxl_moving_size, uint32_t *dxl_present_position, int dxl_present_position_size , dynamixel::GroupSyncRead groupSyncRead_PP_MV, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
 
+    bool syncGet_PP_PV_PA_VL_AL( uint8_t *DxlIDs, int DxlIds_size, uint32_t *dxl_present_position, int dxl_present_position_size, dxlProfVel dxl_prof_vel, int dxl_prof_vel_size, dxlProfAccel dxl_prof_accel, int dxl_prof_accel_size , dxlVelLimit dxl_vel_limit, int dxl_vel_limit_size,  dxlAccelLimit dxl_accel_limit, int dxl_accel_limit_size, dynamixel::GroupSyncRead groupSyncRead_PP_PV_PA_VL_AL, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
+    
     private:
 
 };
