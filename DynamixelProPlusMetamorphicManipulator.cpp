@@ -9,8 +9,12 @@
 #include <fstream>
 #include <vector>
 #include "DynamixelProPlusMetamorphicManipulator.h"
-#include "definitions.h"                            // Includes definitions of control table variables addresses/data lengths/ communication/ protocols
-#include "motorIDs.h"                               // Includes motor IDs as set using Dynamixel Wizard
+
+// Include Motor Configuration files from folder ~/Arduino/libraries/test_metamorphic_manipulator_configuration
+#include <definitions.h>                            
+#include <motorIDs.h>                               
+#include <contolTableItems_LimitValues.h>
+#include <StepperMotorSettings.h>
 
 using namespace std;
 
@@ -266,7 +270,7 @@ bool DynamixelProPlusMetamorphicManipulator::syncSet_GP_A_V_LED( uint8_t *DxlIDs
  */
 
 // I. Disable Dynamixel Torque because Indirect address would not be accessible when the torque is already enabled
-        uint8_t param_torque_enable = 0;
+        uint8_t param_torque_enable = TORQUE_DISABLE;
         Serial.println("syncSet_GP_A_V_LED: Setting Dynamixels TORQUE -> DISABLED to write Indirect data to EEPROM Memory");
         return_function_state = DynamixelProPlusMetamorphicManipulator::syncSetTorque(DxlIDs, sizeof(DxlIDs), param_torque_enable, groupSyncWrite_TORQUE_ENABLE, packetHandler);
         if (return_function_state == true)
@@ -430,7 +434,7 @@ bool DynamixelProPlusMetamorphicManipulator::syncSet_GP_A_V_LED( uint8_t *DxlIDs
         } // FINISHED WRITING IN EEPROM MEMORY
 
 // III. Enable Dynamixel Torque since writing to EEPROM Memory finished
-        param_torque_enable = 1;
+        param_torque_enable = TORQUE_ENABLE;
         Serial.println("Setting Dynamixels TORQUE: ENABLED since finished accessing EEPROM.");
         return_function_state = syncSetTorque(DxlIDs, DxlIds_size, param_torque_enable, groupSyncWrite_TORQUE_ENABLE, packetHandler);
         if (return_function_state == true)
@@ -671,7 +675,7 @@ bool DynamixelProPlusMetamorphicManipulator::syncGet_PP_PV_PA_VL_AL( uint8_t *Dx
 if ( (DxlIds_size == dxl_present_position_size) && (DxlIds_size == dxl_prof_vel_size) && (DxlIds_size == dxl_prof_accel_size) && (DxlIds_size == dxl_vel_limit_size) && (DxlIds_size == dxl_accel_limit_size) )
 {
     // 1. Disable Dynamixel Torque because Indirect address would not be accessible when the torque is already enabled
-    uint8_t param_torque_enable = 0;
+    uint8_t param_torque_enable = TORQUE_DISABLE;
     Serial.println("[syncGet_PP_PV_PA_VL_AL ]: Setting Dynamixels TORQUE -> DISABLED to write Indirect Data to EEPROM Memory");
     return_function_state = DynamixelProPlusMetamorphicManipulator::syncSetTorque(DxlIDs, sizeof(DxlIDs), param_torque_enable, groupSyncWrite_TORQUE_ENABLE, packetHandler);
     if (return_function_state == true)
@@ -888,7 +892,7 @@ if ( (DxlIds_size == dxl_present_position_size) && (DxlIds_size == dxl_prof_vel_
     }
 
     // 3. Enable Dynamixel Torque since writing to EEPROM Memory finished
-    param_torque_enable = 1;
+    param_torque_enable = TORQUE_ENABLE;
     Serial.println("Setting Dynamixels TORQUE: ENABLED since finished accessing EEPROM.");
     return_function_state = syncSetTorque(DxlIDs, DxlIds_size, param_torque_enable, groupSyncWrite_TORQUE_ENABLE, packetHandler);
     if (return_function_state == true)

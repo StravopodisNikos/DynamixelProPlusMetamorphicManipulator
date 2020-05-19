@@ -11,12 +11,14 @@
 #include "OpenCR.h"
 #include <vector>
 #include <fstream>
-#include "definitions.h"                            // Includes definitions of control table variables addresses/data lengths/ communication/ protocols
-#include "motorIDs.h"                               // Includes motor IDs as set using Dynamixel Wizard
+//#include "definitions.h"                           // Includes definitions of control table variables addresses/data lengths/ communication/ protocols
+//#include "motorIDs.h"                              // Includes motor IDs as set using Dynamixel Wizard
 
 using namespace std;
 
-extern uint8_t dxl_id[] = {DXL1_ID, DXL2_ID, DXL3_ID};
+//uint8_t dxl_id[] = {DXL1_ID, DXL2_ID, DXL3_ID};
+extern uint8_t dxl_id[];
+const int DXL_ID_SIZE = 3;                            // Must be configured based on declaration in test_metamorphic_manipulator.ino
 
 extern int dxl_comm_result;                                                               // Communication result
 extern bool dxl_addparam_result;                                                          // addParam result
@@ -30,6 +32,7 @@ extern uint8_t dxl_ledBLUE_value[];
 extern uint8_t dxl_ledGREEN_value[];
 extern uint8_t dxl_ledRED_value[];
 
+/*
 typedef int32_t dxlVelLimit[sizeof(dxl_id)];
 typedef int32_t dxlAccelLimit[sizeof(dxl_id)];
 typedef int32_t dxlProfVel[sizeof(dxl_id)];
@@ -37,6 +40,15 @@ typedef int32_t dxlProfAccel[sizeof(dxl_id)];
 typedef int32_t dxlGoalPos[sizeof(dxl_id)];
 typedef int32_t typeDxlTrapzProfParams[sizeof(dxl_id)];
 typedef uint8_t typeLED[sizeof(dxl_id)];
+*/
+
+typedef int32_t dxlVelLimit[DXL_ID_SIZE];
+typedef int32_t dxlAccelLimit[DXL_ID_SIZE];
+typedef int32_t dxlProfVel[DXL_ID_SIZE];
+typedef int32_t dxlProfAccel[DXL_ID_SIZE];
+typedef int32_t dxlGoalPos[DXL_ID_SIZE];
+typedef int32_t typeDxlTrapzProfParams[DXL_ID_SIZE];
+typedef uint8_t typeLED[DXL_ID_SIZE];
 
 // Function Nomenclature
 
