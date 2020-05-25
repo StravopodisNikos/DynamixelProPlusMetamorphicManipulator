@@ -662,7 +662,7 @@ else
 
 } // END FUNCTION
 
-bool DynamixelProPlusMetamorphicManipulator::syncGet_PP_PV_PA_VL_AL( uint8_t *DxlIDs, int DxlIds_size, uint32_t *dxl_present_position, int dxl_present_position_size , dxlProfVel dxl_prof_vel, int dxl_prof_vel_size, dxlProfAccel dxl_prof_accel, int dxl_prof_accel_size , dxlVelLimit dxl_vel_limit, int dxl_vel_limit_size,  dxlAccelLimit dxl_accel_limit, int dxl_accel_limit_size, dynamixel::GroupSyncRead groupSyncRead_PP_PV_PA_VL_AL, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler) {
+bool DynamixelProPlusMetamorphicManipulator::syncGet_PP_PV_PA_VL_AL( uint8_t *DxlIDs, int DxlIds_size, uint32_t *dxl_present_position, int dxl_present_position_size , int32_t dxl_prof_vel[], int dxl_prof_vel_size, int32_t dxl_prof_accel[], int dxl_prof_accel_size , int32_t dxl_vel_limit[], int dxl_vel_limit_size,  int32_t dxl_accel_limit[], int dxl_accel_limit_size, dynamixel::GroupSyncRead groupSyncRead_PP_PV_PA_VL_AL, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler) {
 /*
     *  Reads 1. Present Absolute Position
     *        2. Profile Acceleration
@@ -999,4 +999,37 @@ else
     return false;
 }
 
+}
+
+int32_t DynamixelProPlusMetamorphicManipulator::convertRadian2DxlPulses(double position_in_radians)
+{
+    int32_t position_in_dxl_pulses;
+    //double position_in_radians;
+
+    if (position_in_radians == 0)
+    {
+        position_in_dxl_pulses = 0;
+    }
+    else 
+    {
+        position_in_dxl_pulses = (position_in_radians * DXL_RESOLUTION)/PI;
+    }
+
+return position_in_dxl_pulses;
+}
+  
+double DynamixelProPlusMetamorphicManipulator::convertDxlPulses2Radian(int32_t position_in_dxl_pulses)
+{
+    double position_in_radians;
+    
+    if (position_in_dxl_pulses == 0)
+    {
+        position_in_radians = (double) position_in_dxl_pulses;
+    }
+    else
+    {
+        position_in_radians = (double) (position_in_dxl_pulses * PI) / DXL_RESOLUTION ;
+    }
+    
+    return position_in_radians;
 }
