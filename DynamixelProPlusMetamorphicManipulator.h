@@ -27,6 +27,7 @@ extern bool return_function_state;
 extern uint8_t dxl_error; 
 extern uint16_t dxl_model_number[];
 extern uint32_t dxl_present_position[];
+extern uint32_t dxl_goal_position[];
 
 extern uint8_t dxl_ledBLUE_value[];
 extern uint8_t dxl_ledGREEN_value[];
@@ -55,6 +56,7 @@ typedef int32_t dxlVelLimit[DXL_ID_SIZE];
 typedef int32_t dxlAccelLimit[DXL_ID_SIZE];
 typedef int32_t typeDxlTrapzProfParams[DXL_ID_SIZE];
 typedef uint8_t typeLED[DXL_ID_SIZE];
+typedef int32_t typeDxlTrapzProfParams_forP2P[DXL_ID_SIZE];
 
 // Function Nomenclature
 
@@ -87,9 +89,9 @@ class DynamixelProPlusMetamorphicManipulator
 
     bool syncGet_PP_PV_PA_VL_AL( uint8_t *DxlIDs, int DxlIds_size, uint32_t *dxl_present_position, int dxl_present_position_size, int32_t dxl_prof_vel[], int dxl_prof_vel_size, int32_t dxl_prof_accel[], int dxl_prof_accel_size , int32_t dxl_vel_limit[], int dxl_vel_limit_size,  int32_t dxl_accel_limit[], int dxl_accel_limit_size, dynamixel::GroupSyncRead groupSyncRead_PP_PV_PA_VL_AL, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
     
-    int32_t convertRadian2DxlPulses(double position_in_radians);
+    uint32_t convertRadian2DxlPulses(double position_in_radians);
 
-    double convertDxlPulses2Radian(int32_t position_in_dxl_pulses);
+    double convertDxlPulses2Radian(uint32_t position_in_dxl_pulses);
 
     private:
 

@@ -1001,9 +1001,9 @@ else
 
 }
 
-int32_t DynamixelProPlusMetamorphicManipulator::convertRadian2DxlPulses(double position_in_radians)
+uint32_t DynamixelProPlusMetamorphicManipulator::convertRadian2DxlPulses(double position_in_radians)
 {
-    int32_t position_in_dxl_pulses;
+    uint32_t position_in_dxl_pulses;
     //double position_in_radians;
 
     if (position_in_radians == 0)
@@ -1018,7 +1018,7 @@ int32_t DynamixelProPlusMetamorphicManipulator::convertRadian2DxlPulses(double p
 return position_in_dxl_pulses;
 }
   
-double DynamixelProPlusMetamorphicManipulator::convertDxlPulses2Radian(int32_t position_in_dxl_pulses)
+double DynamixelProPlusMetamorphicManipulator::convertDxlPulses2Radian(uint32_t position_in_dxl_pulses)
 {
     double position_in_radians;
     
