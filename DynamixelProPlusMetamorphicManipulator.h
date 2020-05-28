@@ -93,6 +93,8 @@ class DynamixelProPlusMetamorphicManipulator
 
     double convertDxlPulses2Radian(uint32_t position_in_dxl_pulses);
 
+    unsigned long calculateDxlExecTime(int32_t PV, int32_t PA, int32_t Pos_i, int32_t Pos_f);
+
     private:
 
 

@@ -658,9 +658,9 @@ else
     return false;
 }
 
-// =========================================================================================================== //
-
 } // END FUNCTION
+
+// =========================================================================================================== //
 
 bool DynamixelProPlusMetamorphicManipulator::syncGet_PP_PV_PA_VL_AL( uint8_t *DxlIDs, int DxlIds_size, uint32_t *dxl_present_position, int dxl_present_position_size , int32_t dxl_prof_vel[], int dxl_prof_vel_size, int32_t dxl_prof_accel[], int dxl_prof_accel_size , int32_t dxl_vel_limit[], int dxl_vel_limit_size,  int32_t dxl_accel_limit[], int dxl_accel_limit_size, dynamixel::GroupSyncRead groupSyncRead_PP_PV_PA_VL_AL, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler) {
 /*
@@ -1001,6 +1001,8 @@ else
 
 }
 
+// =========================================================================================================== //
+
 uint32_t DynamixelProPlusMetamorphicManipulator::convertRadian2DxlPulses(double position_in_radians)
 {
     uint32_t position_in_dxl_pulses;
@@ -1018,6 +1020,8 @@ uint32_t DynamixelProPlusMetamorphicManipulator::convertRadian2DxlPulses(double 
 return position_in_dxl_pulses;
 }
   
+// =========================================================================================================== //
+
 double DynamixelProPlusMetamorphicManipulator::convertDxlPulses2Radian(uint32_t position_in_dxl_pulses)
 {
     double position_in_radians;
@@ -1032,4 +1036,24 @@ double DynamixelProPlusMetamorphicManipulator::convertDxlPulses2Radian(uint32_t 
     }
     
     return position_in_radians;
+}
+
+// =========================================================================================================== //
+
+unsigned long DynamixelProPlusMetamorphicManipulator::calculateDxlExecTime(int32_t PV, int32_t PA, int32_t Pos_i, int32_t Pos_f)
+{
+    /*
+     *  Described in Par. 2.4.34 @ http://emanual.robotis.com/docs/en/dxl/p/ph54-100-s500-r/
+     *  All units are [pulses] and time in [ms]
+     */
+
+    int32_t Dpos = abs(Pos_f - Pos_i);
+
+    unsigned long t1 = (600*PV)/PA;
+
+    unsigned long t2 = (6000000/(2*DXL_RESOLUTION)) * (Dpos / PV);
+
+    unsigned long t3 = t1 + t2;
+
+    return t3;
 }
