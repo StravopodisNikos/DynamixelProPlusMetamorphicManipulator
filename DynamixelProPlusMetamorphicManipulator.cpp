@@ -10,7 +10,7 @@
 #include <vector>
 #include "DynamixelProPlusMetamorphicManipulator.h"
 
-// Include Motor Configuration files from folder ~/Arduino/libraries/test_metamorphic_manipulator_configuration
+// Include Motor Configuration files from folder ~/Arduino/libraries/
 #include <definitions.h>                            
 #include <motorIDs.h>                               
 #include <contolTableItems_LimitValues.h>
@@ -31,34 +31,36 @@ DynamixelProPlusMetamorphicManipulator::DynamixelProPlusMetamorphicManipulator()
 // =========================================================================================================== //
 
 // Ping Dynamixels
-bool DynamixelProPlusMetamorphicManipulator::pingDynamixels(uint8_t *DxlIDs, int DxlIds_size, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler) {
+bool DynamixelProPlusMetamorphicManipulator::pingDynamixels(uint8_t *DxlIDs, int DxlIds_size, dynamixel::GroupSyncWrite groupSyncWrite_RGB_LED, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler) {
 
 /*
  *  Pings Connected Dynamixels given the correct ID number as set using thw Wizard Software
  */
   for(int id_count = 0; id_count < DxlIds_size; id_count++){
-      dxl_comm_result = packetHandler->ping(portHandler, DxlIDs[id_count], &dxl_model_number[id_count], &dxl_error);
-      if (dxl_comm_result != COMM_SUCCESS)
-      {
-        Serial.print(packetHandler->getTxRxResult(dxl_comm_result));
-        return false;
-      }
-      else if (dxl_error != 0)
-      {
-        Serial.print(packetHandler->getRxPacketError(dxl_error));
-        return false;
-      }
-    else
-    {
-        // set RGB led to GREEN
+        dxl_comm_result = packetHandler->ping(portHandler, DxlIDs[id_count], &dxl_model_number[id_count], &dxl_error);
+        if (dxl_comm_result != COMM_SUCCESS)
+        {
+            Serial.print(packetHandler->getTxRxResult(dxl_comm_result));
+            return false;
+        }
+        else if (dxl_error != 0)
+        {
+            Serial.print(packetHandler->getRxPacketError(dxl_error));
+            return false;
+        }
+        else
+        {
+            // set RGB led to GREEN
+            unsigned char ping_indicator[] = {0,255,0};           // green value
 
-        // Print serial monitor message
-        Serial.print("[ID:"); Serial.print(DxlIDs[id_count]);
-        Serial.print("] ping Succeeded. Dynamixel model number : ");
-        Serial.println(dxl_model_number[id_count]);
-    }
+            bool led_indicator = setRGBledValue(DxlIDs[id_count], groupSyncWrite_RGB_LED, ping_indicator, packetHandler, portHandler);
+
+            // Print serial monitor message
+            Serial.print("[ID:"); Serial.print(DxlIDs[id_count]);
+            Serial.print("] ping Succeeded. Dynamixel model number : ");
+            Serial.println(dxl_model_number[id_count]);
+        }
     
-
   }
 
   return true;
@@ -270,7 +272,7 @@ else
 
 // =========================================================================================================== //
 
-bool DynamixelProPlusMetamorphicManipulator::syncSet_GP_A_V_LED( uint8_t *DxlIDs, int DxlIds_size, typeDxlTrapzProfParams DxlTrapzProfParams[], int DxlTrapzProfParams_size, dynamixel::GroupSyncWrite groupSyncWrite_GP_A_V_LED, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler){
+bool DynamixelProPlusMetamorphicManipulator::syncSet_GP_A_V_LED( uint8_t *DxlIDs, int DxlIds_size, typeDxlTrapzProfParams DxlTrapzProfParams[], int DxlTrapzProfParams_size, unsigned char dxl_LED_values[], dynamixel::GroupSyncWrite groupSyncWrite_GP_A_V_LED, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler){
 
 /*
  *  Uses Indirect Addressing to write Goal Position, Acceleration, Velocity and LED values
@@ -472,9 +474,9 @@ type_param_indirect_data_for_GP_A_V_LED param_indirect_data_for_GP_A_V_LED[DxlTr
                 param_indirect_data_for_GP_A_V_LED[id_count][10] = DXL_LOBYTE(DXL_HIWORD(DxlTrapzProfParams[id_count][3]));
                 param_indirect_data_for_GP_A_V_LED[id_count][11] = DXL_HIBYTE(DXL_HIWORD(DxlTrapzProfParams[id_count][3]));
                 
-                param_indirect_data_for_GP_A_V_LED[id_count][12] = dxl_ledBLUE_value[led_change];                                // BLUE
-                param_indirect_data_for_GP_A_V_LED[id_count][13] = dxl_ledGREEN_value[led_change];                               // GREEN
-                param_indirect_data_for_GP_A_V_LED[id_count][14] = dxl_ledRED_value[led_change];                                 // RED
+                param_indirect_data_for_GP_A_V_LED[id_count][12] = dxl_LED_values[0];                                // RED
+                param_indirect_data_for_GP_A_V_LED[id_count][13] = dxl_LED_values[1];                               // GREEN
+                param_indirect_data_for_GP_A_V_LED[id_count][14] = dxl_LED_values[2];                                 // BLUE
 
                 // V.   Add WRITE values to the Syncwrite parameter storage for each Dynamixel
                 dxl_addparam_result = groupSyncWrite_GP_A_V_LED.addParam(DxlIDs[id_count], param_indirect_data_for_GP_A_V_LED[id_count]);
@@ -1067,27 +1069,106 @@ unsigned long DynamixelProPlusMetamorphicManipulator::calculateDxlExecTime(int32
 
 // =========================================================================================================== //
 
-bool DynamixelProPlusMetamorphicManipulator::setRGBledValue(uint8_t DxlID, dynamixel::GroupSyncWrite groupSyncWrite_RGB_LED, , dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler)
+bool DynamixelProPlusMetamorphicManipulator::setRGBledValue(uint8_t DxlID, dynamixel::GroupSyncWrite groupSyncWrite_RGB_LED, unsigned char dxl_LED_values[], dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler)
 {
     /*
      * Set desired colour to ONE DXL only! This function is used to build the indicators for robot operation supervision
+     * dxl_LED_values = [RED, GREEN, BLUE] size is always 3
      */
 
+    // 1. Disable Dynamixel Torque to access indirect address:
+    uint8_t param_torque_enable = TORQUE_DISABLE;
+    dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DxlID, ADDR_PRO_TORQUE_ENABLE, param_torque_enable, &dxl_error);
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        packetHandler->getTxRxResult(dxl_comm_result);
+    }
+    else if (dxl_error != 0)
+    {
+        packetHandler->getRxPacketError(dxl_error);
+    }
+    else
+    {
+        Serial.print("[DXL ID:"); Serial.print(DxlID);  Serial.println("] TORQUE DISABLED");
+    }
 
-    // Disable Dynamixel Torque to access indirect address:
+    // 2. Write to EEPROM the INDIRECTDATA parameter storage
+    dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlID, ADDR_PRO_INDIRECTADDRESS_FOR_WRITE_RGB_LED + 0, ADDR_PRO_LED_RED, &dxl_error);
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+    packetHandler->getTxRxResult(dxl_comm_result);
+    }
+    else if (dxl_error != 0)
+    {
+    packetHandler->getRxPacketError(dxl_error);
+    }
 
-      dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
-  if (dxl_comm_result != COMM_SUCCESS)
-  {
-    packetHandler->printTxRxResult(dxl_comm_result);
-  }
-  else if (dxl_error != 0)
-  {
-    packetHandler->printRxPacketError(dxl_error);
-  }
-  else
-  {
-    printf("DXL has been successfully connected \n");
-  }
+    dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlID, ADDR_PRO_INDIRECTADDRESS_FOR_WRITE_RGB_LED + 2, ADDR_PRO_LED_GREEN, &dxl_error);
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+    packetHandler->getTxRxResult(dxl_comm_result);
+    }
+    else if (dxl_error != 0)
+    {
+    packetHandler->getRxPacketError(dxl_error);
+    }
+    
+    dxl_comm_result = packetHandler->write2ByteTxRx(portHandler, DxlID, ADDR_PRO_INDIRECTADDRESS_FOR_WRITE_RGB_LED + 4, ADDR_PRO_LED_BLUE, &dxl_error);
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+    packetHandler->getTxRxResult(dxl_comm_result);
+    }
+    else if (dxl_error != 0)
+    {
+    packetHandler->getRxPacketError(dxl_error);
+    }
 
+
+    // 3. Enable Dynamixel Torque since accessing indirect address finished:
+    param_torque_enable = TORQUE_ENABLE;
+    dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DxlID, ADDR_PRO_TORQUE_ENABLE, param_torque_enable, &dxl_error);
+    if (dxl_comm_result != COMM_SUCCESS)
+    {
+        packetHandler->getTxRxResult(dxl_comm_result);
+    }
+    else if (dxl_error != 0)
+    {
+        packetHandler->getRxPacketError(dxl_error);
+    }
+    else
+    {
+        Serial.print("[DXL ID:"); Serial.print(DxlID);  Serial.println("] TORQUE DISABLED");
+    }
+
+    // 4.  Add WRITE values to the Syncwrite parameter storage to the Dynamixel
+
+    unsigned char param_indirect_data_for_RGB_LED[3];
+
+    param_indirect_data_for_RGB_LED[0] = dxl_LED_values[0];                                
+    param_indirect_data_for_RGB_LED[1] = dxl_LED_values[1];                              
+    param_indirect_data_for_RGB_LED[2] = dxl_LED_values[2];  
+
+    dxl_addparam_result = groupSyncWrite_RGB_LED.addParam(DxlID, param_indirect_data_for_RGB_LED);
+    if (dxl_addparam_result != true)
+    {
+        Serial.print("[ID:"); Serial.print(DxlID); Serial.println("] groupSyncWrite_RGB_LED.addParam addparam FAILED");
+        return false;
+    }
+    else
+    { 
+        Serial.print("[ID:"); Serial.print(DxlID); Serial.println("] groupSyncWrite_RGB_LED.addParam addparam SUCCESS");
+    }
+
+    // 5. Syncwrite Packet is sent to Dynamixels
+    dxl_comm_result = groupSyncWrite_RGB_LED.txPacket();
+    if (dxl_comm_result != COMM_SUCCESS){
+        Serial.print(packetHandler->getTxRxResult(dxl_comm_result));
+        Serial.println("groupSyncWrite_RGB_LED.txPacket: FAILED");
+        groupSyncWrite_RGB_LED.clearParam();                                 // Clears syncwrite parameter storage
+        return false;
+    }else{
+        groupSyncWrite_RGB_LED.clearParam();
+        Serial.println("groupSyncWrite_RGB_LED.txPacket: SUCCESS");
+        return true;
+    }
 }

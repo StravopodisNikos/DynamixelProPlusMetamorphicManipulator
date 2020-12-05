@@ -75,7 +75,7 @@ class DynamixelProPlusMetamorphicManipulator
 
     DynamixelProPlusMetamorphicManipulator();
 
-    bool pingDynamixels(uint8_t *DxlIDs, int DxlIds_size, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
+    bool pingDynamixels(uint8_t *DxlIDs, int DxlIds_size, dynamixel::GroupSyncWrite groupSyncWrite_RGB_LED, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
 
     bool syncSetTorque(uint8_t *DxlIDs, int DxlIds_size, uint8_t data, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler);
 
@@ -83,7 +83,7 @@ class DynamixelProPlusMetamorphicManipulator
 
     bool syncSetGoalPosition(uint8_t *DxlIDs, int DxlIds_size, dxlGoalPos dxl_goal_pos, int dxl_goal_pos_size, dynamixel::GroupSyncWrite groupSyncWriteGoalPos,  dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
 
-    bool syncSet_GP_A_V_LED( uint8_t *DxlIDs, int DxlIds_size, typeDxlTrapzProfParams DxlTrapzProfParams[], int DxlTrapzProfParams_size, dynamixel::GroupSyncWrite groupSyncWrite_GP_A_V_LED, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
+    bool syncSet_GP_A_V_LED( uint8_t *DxlIDs, int DxlIds_size, typeDxlTrapzProfParams DxlTrapzProfParams[], int DxlTrapzProfParams_size, unsigned char dxl_LED_values[], dynamixel::GroupSyncWrite groupSyncWrite_GP_A_V_LED, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
 
     bool syncGet_PP_MV( uint8_t *DxlIDs, int DxlIds_size, uint8_t *dxl_moving, int dxl_moving_size, uint32_t *dxl_present_position, int dxl_present_position_size , dynamixel::GroupSyncRead groupSyncRead_PP_MV, dynamixel::GroupSyncWrite groupSyncWrite_TORQUE_ENABLE, dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
 
@@ -95,8 +95,9 @@ class DynamixelProPlusMetamorphicManipulator
 
     unsigned long calculateDxlExecTime(int32_t PV, int32_t PA, int32_t Pos_i, int32_t Pos_f);
 
-    private:
+private:
 
+    bool setRGBledValue(uint8_t DxlID, dynamixel::GroupSyncWrite groupSyncWrite_RGB_LED, unsigned char dxl_LED_values[], dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler);
 
 };
 
