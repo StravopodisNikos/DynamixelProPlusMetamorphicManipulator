@@ -48,10 +48,17 @@ bool DynamixelProPlusMetamorphicManipulator::pingDynamixels(uint8_t *DxlIDs, int
         Serial.print(packetHandler->getRxPacketError(dxl_error));
         return false;
       }
+    else
+    {
+        // set RGB led to GREEN
+
+        // Print serial monitor message
+        Serial.print("[ID:"); Serial.print(DxlIDs[id_count]);
+        Serial.print("] ping Succeeded. Dynamixel model number : ");
+        Serial.println(dxl_model_number[id_count]);
+    }
     
-      Serial.print("[ID:"); Serial.print(DxlIDs[id_count]);
-      Serial.print("] ping Succeeded. Dynamixel model number : ");
-      Serial.println(dxl_model_number[id_count]);
+
   }
 
   return true;
@@ -1056,4 +1063,31 @@ unsigned long DynamixelProPlusMetamorphicManipulator::calculateDxlExecTime(int32
     unsigned long t3 = t1 + t2;
 
     return t3;
+}
+
+// =========================================================================================================== //
+
+bool DynamixelProPlusMetamorphicManipulator::setRGBledValue(uint8_t DxlID, dynamixel::GroupSyncWrite groupSyncWrite_RGB_LED, , dynamixel::PacketHandler *packetHandler, dynamixel::PortHandler *portHandler)
+{
+    /*
+     * Set desired colour to ONE DXL only! This function is used to build the indicators for robot operation supervision
+     */
+
+
+    // Disable Dynamixel Torque to access indirect address:
+
+      dxl_comm_result = packetHandler->write1ByteTxRx(portHandler, DXL_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_DISABLE, &dxl_error);
+  if (dxl_comm_result != COMM_SUCCESS)
+  {
+    packetHandler->printTxRxResult(dxl_comm_result);
+  }
+  else if (dxl_error != 0)
+  {
+    packetHandler->printRxPacketError(dxl_error);
+  }
+  else
+  {
+    printf("DXL has been successfully connected \n");
+  }
+
 }
